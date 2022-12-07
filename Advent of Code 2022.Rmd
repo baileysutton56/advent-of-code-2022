@@ -1,0 +1,51 @@
+---
+title: "Advent of Code 2022"
+author: "Bailey Sutton"
+date: "12/6/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(data.table)
+library(rstatix)
+library(stringi)
+```
+
+```{r Day 1}
+
+#import
+day1 <- data.table::fread("~/Desktop/Projects/Stats/Advent of Code 2022/Day1.txt")
+
+#reformat dataframe
+day1_groups <- day1 %>%
+  group_split(grp = cumsum(rowSums(is.na(.)) == ncol(.)), .keep = FALSE) %>%
+  map_at(.at = -1, tail, -1)
+
+day1_groups <- data.frame(t(sapply(day1_groups,c)))
+
+day1_groups_long <- day1_groups %>% pivot_longer(everything())
+
+day1_groups_long$value <- stri_replace_all_fixed(day1_groups_long$value, "c(", "")
+day1_groups_long$value <- stri_replace_all_fixed(day1_groups_long$value, ")", "")
+
+#separate cals
+day1_labs <- separate_rows(day1_groups_long, value, sep = ", ", convert = TRUE)
+
+#summarize by group
+day1_labs_tot <- day1_labs %>%
+  group_by(name) %>%
+  summarise(total = sum(value))
+
+#pull highest total
+day1_labs_tot <- day1_labs_tot[order(day1_labs_tot$total),]
+tail(day1_labs_tot, n = 1)
+
+#pull total of highest three
+day1_labs_tot %>% 
+  tail(n = 3) %>%
+  pull(total) %>%
+  sum()
+```
