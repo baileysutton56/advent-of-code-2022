@@ -12,6 +12,8 @@ library(tidyverse)
 library(data.table)
 library(rstatix)
 library(stringi)
+
+library(readr)
 ```
 
 ```{r Day 1}
@@ -49,3 +51,65 @@ day1_labs_tot %>%
   pull(total) %>%
   sum()
 ```
+
+```{r Day 2}
+
+#import
+day2 <- read_table2("~/Desktop/Projects/Stats/Advent of Code 2022/day2.txt", col_names = FALSE)
+
+#replace obs names
+day2$X1 <- gsub("A", "Rock", day2$X1)
+day2$X1 <- gsub("B", "Paper", day2$X1)
+day2$X1 <- gsub("C", "Scissors", day2$X1)
+
+day2$X2 <- gsub("X", "Rock", day2$X2)
+day2$X2 <- gsub("Y", "Paper", day2$X2)
+day2$X2 <- gsub("Z", "Scissors", day2$X2)
+
+#calculate choice score
+day2$choice_score <- as.numeric(ifelse(day2$X2 == 'Rock', '1',
+                                       ifelse(day2$X2 == 'Paper', '2', '3')))
+
+#calculate win score
+day2$win_score <- as.numeric(ifelse(day2$X1 == 'Rock' & day2$X2 == 'Rock', '3',
+                                    ifelse(day2$X1 == 'Scissors' & day2$X2 == 'Rock', '6',
+                                           ifelse(day2$X1 == 'Paper' & day2$X2 == 'Paper', '3',
+                                                  ifelse(day2$X1 == 'Rock' & day2$X2 == 'Paper', '6',
+                                                         ifelse(day2$X1 == 'Scissors' & day2$X2 == 'Scissors', '3',
+                                                                ifelse(day2$X1 == 'Paper' & day2$X2 == 'Scissors', '6', '0')))))))
+
+#calculate total score
+day2$total_score <- day2$choice_score + day2$win_score
+
+#final total
+sum(day2$total_score)
+
+#X2 new
+day2$X2_new <- ifelse(day2$X2 == 'Rock', 'Lose',
+                      ifelse(day2$X2 == 'Paper', 'Draw', 'Win'))
+
+#calculate new choice
+day2$choice_new <- ifelse(day2$X1 == 'Rock' & day2$X2_new == 'Win', 'Paper',
+                          ifelse(day2$X1 == 'Rock' & day2$X2_new == 'Draw', 'Rock',
+                                 ifelse(day2$X1 == 'Rock' & day2$X2_new == 'Lose', 'Scissors',
+                                        ifelse(day2$X1 == 'Paper' & day2$X2_new == 'Win', 'Scissors',
+                                               ifelse(day2$X1 == 'Paper' & day2$X2_new == 'Draw', 'Paper',
+                                                      ifelse(day2$X1 == 'Paper' & day2$X2_new == 'Lose', 'Rock',
+                                                             ifelse(day2$X1 == 'Scissors' & day2$X2_new == 'Win', 'Rock',
+                                                                    ifelse(day2$X1 == 'Scissors' & day2$X2_new == 'Draw', 'Scissors', 'Paper'))))))))
+
+#calculate new choice score
+day2$choice_score_new <- as.numeric(ifelse(day2$choice_new == 'Rock', '1',
+                                           ifelse(day2$choice_new == 'Paper', '2', '3')))
+
+#calculate new win score
+day2$win_score_new <- as.numeric(ifelse(day2$X2_new == 'Win', '6',
+                                        ifelse(day2$X2_new == 'Draw', '3', '0')))
+
+#calculate new total score
+day2$total_score_new <- day2$choice_score_new + day2$win_score_new
+
+#calculate new total
+sum(day2$total_score_new)
+```
+
