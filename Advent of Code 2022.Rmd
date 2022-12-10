@@ -113,3 +113,83 @@ day2$total_score_new <- day2$choice_score_new + day2$win_score_new
 sum(day2$total_score_new)
 ```
 
+```{r Day 3}
+
+#import
+day3 <- read_csv("~/Desktop/Projects/Stats/Advent of Code 2022/day3.txt", col_names = FALSE)
+
+#split strings in half
+len <- nchar(day3$X1)
+half_len <- len/2
+half_len_pl1 <- half_len + 1
+
+day3$first_half <- substr(day3$X1,1,half_len)
+day3$sec_half <- substr(day3$X1,half_len_pl1,len)
+
+#find duplicate
+day3$dups <- str_extract(day3$first_half, paste0("[", day3$sec_half, "]+"))
+
+day3$dup_single <- substr(day3$dups, 1, 1)
+
+#convert letters to numbers
+lower_val <- as.numeric(seq(1,26))
+upper_val <- as.numeric(seq(27,52))
+
+lower <- letters[1:26]
+upper <- LETTERS[1:26]
+
+lower_let_val <- as.data.frame(cbind(lower, lower_val))
+upper_let_val <- as.data.frame(cbind(upper, upper_val))
+
+lower_let_val <- lower_let_val %>% rename(letter = lower, val = lower_val)
+upper_let_val <- upper_let_val %>% rename(letter = upper, val = upper_val)
+
+let_val <- rbind(lower_let_val, upper_let_val)
+let_val$val <- as.numeric(let_val$val)
+
+day3_dup <- as.data.frame(subset(day3, select = c("dup_single")))
+
+day3_dup_val <- left_join(day3_dup, let_val, by = c("dup_single" = "letter"))
+
+#total
+sum(day3_dup_val$val)
+
+#group every third obs
+day3_grp <- subset(day3, select = c("X1"))
+
+id_len <- 3
+
+day3_grp$id <- as.factor(rep(seq(1, 1 + nrow(day3_grp) %/% id_len), each = id_len, length.out = nrow(day3_grp)))
+
+day3_grp <- day3_grp %>% 
+  group_by(id) %>%
+  mutate(obs_id = match(X1, unique(X1)))
+
+day3_grp_wide <- pivot_wider(day3_grp, id_col = id, names_from = obs_id, values_from = X1)
+
+#find duplicate
+day3_grp_wide$dups_1 <- as.character(str_extract_all(day3_grp_wide$`1`, paste0("[", day3_grp_wide$`2`, "]+")))
+day3_grp_wide$dups_2 <- as.character(str_extract_all(day3_grp_wide$`2`, paste0("[", day3_grp_wide$`3`, "]+")))
+
+day3_grp_wide$dups_1 <- stri_replace_all_fixed(day3_grp_wide$dups_1, "c(", "")
+day3_grp_wide$dups_1 <- stri_replace_all_fixed(day3_grp_wide$dups_1, ")", "")
+day3_grp_wide$dups_1 <- stri_replace_all_fixed(day3_grp_wide$dups_1, ",", "")
+day3_grp_wide$dups_1 <- stri_replace_all_fixed(day3_grp_wide$dups_1, " ", "")
+day3_grp_wide$dups_2 <- stri_replace_all_fixed(day3_grp_wide$dups_2, "c(", "")
+day3_grp_wide$dups_2 <- stri_replace_all_fixed(day3_grp_wide$dups_2, ")", "")
+day3_grp_wide$dups_2 <- stri_replace_all_fixed(day3_grp_wide$dups_2, ",", "")
+day3_grp_wide$dups_2 <- stri_replace_all_fixed(day3_grp_wide$dups_2, " ", "")
+
+day3_grp_wide <- as.data.frame(sapply(day3_grp_wide, function(x) gsub("\"", "", x)))
+
+day3_grp_wide$dups_all <- str_extract(day3_grp_wide$dups_1, paste0("[", day3_grp_wide$dups_2, "]+"))
+
+day3_grp_wide$dup_single <- substr(day3_grp_wide$dups_all, 1, 1)
+
+#add values
+day3_grp_val <- left_join(day3_grp_wide, let_val, by = c("dup_single" = "letter"))
+
+#total
+sum(day3_grp_val$val)
+```
+
