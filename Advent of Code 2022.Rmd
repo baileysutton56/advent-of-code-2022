@@ -193,3 +193,51 @@ day3_grp_val <- left_join(day3_grp_wide, let_val, by = c("dup_single" = "letter"
 sum(day3_grp_val$val)
 ```
 
+```{r Day 4}
+
+#import
+day4 <- read_table2("~/Desktop/Projects/Stats/Advent of Code 2022/day4.txt", col_names = FALSE)
+
+#split elves 1 and 2
+day4_split <- day4 %>% separate(X1, c("elf1","elf2"), sep = "[,]")
+
+#split first and last sections
+day4_split_both <- day4_split %>% 
+  separate(elf1, c("elf1_sec1","elf1_sec2"), sep = "[-]") %>%
+  separate(elf2, c("elf2_sec1","elf2_sec2"), sep = "[-]")
+
+day4_split_both$elf1_sec1 <- as.numeric(day4_split_both$elf1_sec1)
+day4_split_both$elf1_sec2 <- as.numeric(day4_split_both$elf1_sec2)  
+day4_split_both$elf2_sec1 <- as.numeric(day4_split_both$elf2_sec1)
+day4_split_both$elf2_sec2 <- as.numeric(day4_split_both$elf2_sec2)
+
+#find bigger values
+day4_split_both$sec1_bigger <- ifelse(day4_split_both$elf1_sec1 > day4_split_both$elf2_sec1, "elf1", 
+                                      ifelse(day4_split_both$elf1_sec1 == day4_split_both$elf2_sec1, "equal", "elf2"))
+day4_split_both$sec2_smaller <- ifelse(day4_split_both$elf1_sec2 < day4_split_both$elf2_sec2, "elf1",
+                                       ifelse(day4_split_both$elf1_sec2 == day4_split_both$elf2_sec2, "equal", "elf2"))
+
+#find nested sections
+day4_split_both$same <- ifelse(day4_split_both$sec1_bigger == day4_split_both$sec2_smaller, "nested", 
+                               ifelse(day4_split_both$sec1_bigger == "equal", "nested",
+                                      ifelse(day4_split_both$sec2_smaller == "equal", "nested", "not nested")))
+
+#count nested sections
+sum(day4_split_both$same == "nested")
+
+#find overlaps
+day4_split_both$overlap <- ifelse(day4_split_both$same == "nested", "overlap",
+                                 ifelse(day4_split_both$elf2_sec2 < day4_split_both$elf1_sec1 & 
+                                          day4_split_both$elf1_sec2 < day4_split_both$elf2_sec1, "overlap",
+                                       
+                                         ifelse(day4_split_both$elf1_sec1 < day4_split_both$elf2_sec2 & 
+                                                  day4_split_both$elf2_sec1 < day4_split_both$elf1_sec2, "overlap",
+                                               ifelse(day4_split_both$sec1_bigger == "equal", "overlap",
+                                                      ifelse(day4_split_both$sec2_smaller == "equal", "overlap",
+                                                             ifelse(day4_split_both$elf1_sec1 == day4_split_both$elf2_sec2, "overlap",
+                                                                    ifelse(day4_split_both$elf1_sec2 == day4_split_both$elf2_sec1, "overlap", "no overlap")))))))
+
+#count overlapping sections
+sum(day4_split_both$overlap == "overlap")
+```
+
